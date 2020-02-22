@@ -1,4 +1,5 @@
 package com.lilypuree.decorative_blocks.datagen;
+/*
 
 import com.lilypuree.decorative_blocks.DecorativeBlocks;
 import com.lilypuree.decorative_blocks.datagen.types.WoodTypes;
@@ -9,8 +10,11 @@ import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.generators.*;
+*/
 
-public class BlockStates extends BlockStateProvider {
+
+public class BlockStates /*extends BlockStateProvider*/ {
+    /*
 
     public BlockStates(DataGenerator gen, ExistingFileHelper exFileHelper) {
         super(gen, DecorativeBlocks.MODID, exFileHelper);
@@ -115,4 +119,5 @@ public class BlockStates extends BlockStateProvider {
                 .texture("texture", modLoc("block/chain"));
         axisBlock(Registration.CHAIN.get(), chainModel);
     }
+    */
 }

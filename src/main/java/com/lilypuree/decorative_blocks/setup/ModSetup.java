@@ -1,5 +1,6 @@
 package com.lilypuree.decorative_blocks.setup;
 
+/* TODO: Sort all this class out, will probably need mixins
 import com.lilypuree.decorative_blocks.DecorativeBlocks;
 import com.lilypuree.decorative_blocks.blocks.BrazierBlock;
 import com.lilypuree.decorative_blocks.entity.DummyEntityForSitting;
@@ -29,9 +30,11 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
+ */
 
-@Mod.EventBusSubscriber(modid = DecorativeBlocks.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+//@Mod.EventBusSubscriber(modid = DecorativeBlocks.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class ModSetup {
+    /*
     public void init(FMLCommonSetupEvent e) {
     }
 
@@ -63,5 +66,7 @@ public class ModSetup {
             }
         }
     }
+
+     */
 
 }

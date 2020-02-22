@@ -2,41 +2,41 @@ package com.lilypuree.decorative_blocks.blocks;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.TrapDoorBlock;
+import net.minecraft.block.TrapdoorBlock;
+import net.minecraft.block.enums.BlockHalf;
+import net.minecraft.entity.EntityContext;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.Fluids;
-import net.minecraft.state.properties.Half;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.world.IBlockReader;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 
-public class BarPanelBlock extends TrapDoorBlock {
+public class BarPanelBlock extends TrapdoorBlock {
 
     private static final double d0 = 3D;
     private static final double d1 = 16D - d0;
-    protected static final VoxelShape EAST_OPEN_AABB = Block.makeCuboidShape(0.0D, 0.0D, 0.0D, d0, 16.0D, 16.0D);
-    protected static final VoxelShape WEST_OPEN_AABB = Block.makeCuboidShape(d1, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D);
-    protected static final VoxelShape SOUTH_OPEN_AABB = Block.makeCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, d0);
-    protected static final VoxelShape NORTH_OPEN_AABB = Block.makeCuboidShape(0.0D, 0.0D, d1, 16.0D, 16.0D, 16.0D);
-    protected static final VoxelShape BOTTOM_AABB = Block.makeCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, d0, 16.0D);
-    protected static final VoxelShape TOP_AABB = Block.makeCuboidShape(0.0D, d1, 0.0D, 16.0D, 16.0D, 16.0D);
+    protected static final VoxelShape EAST_OPEN_AABB = Block.createCuboidShape(0.0D, 0.0D, 0.0D, d0, 16.0D, 16.0D);
+    protected static final VoxelShape WEST_OPEN_AABB = Block.createCuboidShape(d1, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D);
+    protected static final VoxelShape SOUTH_OPEN_AABB = Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, d0);
+    protected static final VoxelShape NORTH_OPEN_AABB = Block.createCuboidShape(0.0D, 0.0D, d1, 16.0D, 16.0D, 16.0D);
+    protected static final VoxelShape BOTTOM_AABB = Block.createCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, d0, 16.0D);
+    protected static final VoxelShape TOP_AABB = Block.createCuboidShape(0.0D, d1, 0.0D, 16.0D, 16.0D, 16.0D);
 
-    public BarPanelBlock(Block.Properties properties) {
-        super(properties);
+    public BarPanelBlock(Block.Settings settings) {
+        super(settings);
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+    public VoxelShape getOutlineShape(BlockState state, BlockView worldIn, BlockPos pos, EntityContext context) {
         if (!state.get(OPEN)) {
-            return state.get(HALF) == Half.TOP ? TOP_AABB : BOTTOM_AABB;
+            return state.get(HALF) == BlockHalf.TOP ? TOP_AABB : BOTTOM_AABB;
         } else {
-            switch ((Direction) state.get(HORIZONTAL_FACING)) {
+            switch ((Direction) state.get(FACING)) {
                 case NORTH:
                 default:
                     return NORTH_OPEN_AABB;
@@ -50,15 +50,16 @@ public class BarPanelBlock extends TrapDoorBlock {
         }
     }
 
+
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
+    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         state = state.cycle(OPEN);
-        worldIn.setBlockState(pos, state, 2);
+        world.setBlockState(pos, state, 2);
         if (state.get(WATERLOGGED)) {
-            worldIn.getPendingFluidTicks().scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(worldIn));
+            world.getFluidTickScheduler().schedule(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
         }
-        this.playSound(player, worldIn, pos, state.get(OPEN));
-        return ActionResultType.SUCCESS;
+        this.playToggleSound(player, world, pos, state.get(OPEN));
+        return ActionResult.SUCCESS;
     }
 
 }

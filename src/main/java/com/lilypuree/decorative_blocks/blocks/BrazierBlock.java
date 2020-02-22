@@ -1,168 +1,181 @@
 package com.lilypuree.decorative_blocks.blocks;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.IWaterLoggable;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.Waterloggable;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityContext;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.AbstractArrowEntity;
+import net.minecraft.entity.projectile.ArrowEntity;
+import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
-import net.minecraft.fluid.IFluidState;
-import net.minecraft.item.BlockItemUseContext;
+import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.particles.ParticleTypes;
-import net.minecraft.pathfinding.PathType;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.util.*;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.state.StateManager;
+import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.state.property.Properties;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.world.IBlockReader;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.ToolType;
 
-import javax.annotation.Nullable;
 import java.util.Random;
 
-public class BrazierBlock extends Block implements IWaterLoggable {
-    private static final VoxelShape BRAZIER_SHAPE = Block.makeCuboidShape(2D, 0.0D, 2D, 14D, 14D, 14D);
-    public static final BooleanProperty LIT = BlockStateProperties.LIT;
-    public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
+public class BrazierBlock extends Block implements Waterloggable {
+    private static final VoxelShape BRAZIER_SHAPE = Block.createCuboidShape(2D, 0.0D, 2D, 14D, 14D, 14D);
+    public static final BooleanProperty LIT = Properties.LIT;
+    public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
 
 
-    public BrazierBlock(Block.Properties properties) {
+    public BrazierBlock(Settings properties) {
         super(properties);
-        this.setDefaultState(this.stateContainer.getBaseState().with(LIT, Boolean.valueOf(true)).with(WATERLOGGED, Boolean.valueOf(false)));
+        this.setDefaultState(this.getStateManager().getDefaultState().with(LIT, Boolean.valueOf(true)).with(WATERLOGGED, Boolean.valueOf(false)));
     }
 
-
+    @Override
     public void onEntityCollision(BlockState state, World worldIn, BlockPos pos, Entity entityIn) {
-        if (!entityIn.isImmuneToFire() && state.get(LIT) && entityIn instanceof LivingEntity && !EnchantmentHelper.hasFrostWalker((LivingEntity) entityIn)) {
-            entityIn.attackEntityFrom(DamageSource.IN_FIRE, 1.0F);
+        if (!entityIn.isFireImmune() && state.get(LIT) && entityIn instanceof LivingEntity && !EnchantmentHelper.hasFrostWalker((LivingEntity) entityIn)) {
+            entityIn.damage(DamageSource.IN_FIRE, 1.0F);
         }
         super.onEntityCollision(state, worldIn, pos, entityIn);
     }
 
-
-
-    @Nullable
-    public BlockState getStateForPlacement(BlockItemUseContext context) {
-        IWorld iworld = context.getWorld();
-        BlockPos blockpos = context.getPos();
+    @Override
+    public BlockState getPlacementState(ItemPlacementContext ctx) {
+        IWorld iworld = ctx.getWorld();
+        BlockPos blockpos = ctx.getBlockPos();
         boolean flag = iworld.getFluidState(blockpos).getFluid() == Fluids.WATER;
         return this.getDefaultState().with(WATERLOGGED, Boolean.valueOf(flag)).with(LIT, Boolean.valueOf(!flag));
     }
 
-    public BlockState updatePostPlacement(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos) {
-        if (stateIn.get(WATERLOGGED)) {
-            worldIn.getPendingFluidTicks().scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickRate(worldIn));
+    @Override
+    public BlockState getStateForNeighborUpdate(BlockState state, Direction facing, BlockState neighborState, IWorld world, BlockPos pos, BlockPos neighborPos) {
+        if (state.get(WATERLOGGED)) {
+            world.getFluidTickScheduler().schedule(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
         }
-        return super.updatePostPlacement(stateIn, facing, facingState, worldIn, currentPos, facingPos);
+        return super.getStateForNeighborUpdate(state, facing, neighborState, world, pos, neighborPos);
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
-        ItemStack heldItem = player.getHeldItem(handIn);
+    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+        ItemStack heldItem = player.getStackInHand(hand);
         if (state.get(LIT)) {
-            if (heldItem.getToolTypes().contains(ToolType.SHOVEL)) {
+            // TODO: replace by actual shovel detection
+            if (heldItem.getItem().isEffectiveOn(Blocks.SNOW.getDefaultState())) {
 
-                worldIn.playSound((PlayerEntity) null, pos, SoundEvents.ENTITY_GENERIC_EXTINGUISH_FIRE, SoundCategory.BLOCKS, 0.8F, 1.0F);
+                world.playSound((PlayerEntity) null, pos, SoundEvents.ENTITY_GENERIC_EXTINGUISH_FIRE, SoundCategory.BLOCKS, 0.8F, 1.0F);
 
-                worldIn.setBlockState(pos, state.with(LIT, Boolean.FALSE));
-                return ActionResultType.SUCCESS;
+                world.setBlockState(pos, state.with(LIT, Boolean.FALSE));
+                return ActionResult.SUCCESS;
             }
-        } else if(!state.get(WATERLOGGED)){
-            if (hit.getFace() == Direction.UP && heldItem.getItem() == Items.FLINT_AND_STEEL || heldItem.getItem() == Items.FIRE_CHARGE) {
+        } else if (!state.get(WATERLOGGED)) {
+            if (hit.getSide() == Direction.UP && heldItem.getItem() == Items.FLINT_AND_STEEL || heldItem.getItem() == Items.FIRE_CHARGE) {
 
                 SoundEvent sound = (heldItem.getItem() == Items.FIRE_CHARGE) ? SoundEvents.ITEM_FIRECHARGE_USE : SoundEvents.ITEM_FLINTANDSTEEL_USE;
-                worldIn.playSound((PlayerEntity) null, pos, sound, SoundCategory.BLOCKS, 1.0F, worldIn.rand.nextFloat() * 0.4F + 0.8F);
+                world.playSound((PlayerEntity) null, pos, sound, SoundCategory.BLOCKS, 1.0F, world.random.nextFloat() * 0.4F + 0.8F);
 
-                worldIn.setBlockState(pos, state.with(LIT, Boolean.TRUE));
+                world.setBlockState(pos, state.with(LIT, Boolean.TRUE));
 //                if (player != null) {
 //                    heldItem.damageItem(1, player, (p_219998_1_) -> {
 //                        p_219998_1_.sendBreakAnimation(handIn);
 //                    });
 //                }
-                return ActionResultType.CONSUME;
+                return ActionResult.CONSUME;
 
             }
         }
-        return super.onBlockActivated(state, worldIn, pos, player, handIn, hit);
+        return super.onUse(state, world, pos, player, hand, hit);
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+    public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, EntityContext context) {
         return BRAZIER_SHAPE;
     }
 
     @Override
-    public int getLightValue(BlockState state) {
+    public int getLuminance(BlockState state) {
         return state.get(LIT) ? 15 : 0;
     }
 
-    @OnlyIn(Dist.CLIENT)
-    public void animateTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand) {
-        if (stateIn.get(LIT)) {
-            if (rand.nextInt(10) == 0) {
-                worldIn.playSound((double) ((float) pos.getX() + 0.5F), (double) ((float) pos.getY() + 0.5F), (double) ((float) pos.getZ() + 0.5F), SoundEvents.BLOCK_CAMPFIRE_CRACKLE, SoundCategory.BLOCKS, 0.5F + rand.nextFloat(), rand.nextFloat() * 0.7F + 0.6F, false);
+    @Override
+    @Environment(EnvType.CLIENT)
+    public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
+        if (state.get(LIT)) {
+            if (random.nextInt(10) == 0) {
+                world.playSound((double) ((float) pos.getX() + 0.5F), (double) ((float) pos.getY() + 0.5F), (double) ((float) pos.getZ() + 0.5F), SoundEvents.BLOCK_CAMPFIRE_CRACKLE, SoundCategory.BLOCKS, 0.5F + random.nextFloat(), random.nextFloat() * 0.7F + 0.6F, false);
             }
 
-            if (rand.nextInt(5) == 0) {
-                for (int i = 0; i < rand.nextInt(1) + 1; ++i) {
-                    worldIn.addParticle(ParticleTypes.LAVA, (double) ((float) pos.getX() + 0.5F), (double) ((float) pos.getY() + 0.8F), (double) ((float) pos.getZ() + 0.5F), (double) (rand.nextFloat() / 2.0F), 5.0E-5D, (double) (rand.nextFloat() / 2.0F));
+            if (random.nextInt(5) == 0) {
+                for (int i = 0; i < random.nextInt(1) + 1; ++i) {
+                    world.addParticle(ParticleTypes.LAVA, (double) ((float) pos.getX() + 0.5F), (double) ((float) pos.getY() + 0.8F), (double) ((float) pos.getZ() + 0.5F), (double) (random.nextFloat() / 2.0F), 5.0E-5D, (double) (random.nextFloat() / 2.0F));
                 }
             }
 
         }
     }
 
-    public void onProjectileCollision(World worldIn, BlockState state, BlockRayTraceResult hit, Entity projectile) {
-        if (worldIn.isRemote()) {
+    @Override
+    public void onProjectileHit(World world, BlockState state, BlockHitResult hitResult, Entity entity) {
+        if (world.isClient) {
             return;
         }
-        BlockPos blockpos = hit.getPos();
-        if (projectile instanceof AbstractArrowEntity) {
-            AbstractArrowEntity abstractarrowentity = (AbstractArrowEntity) projectile;
-            if (abstractarrowentity.isBurning() && !state.get(LIT) && !state.get(WATERLOGGED)) {
-                worldIn.setBlockState(blockpos, state.with(BlockStateProperties.LIT, Boolean.valueOf(true)), 11);
+        BlockPos blockpos = hitResult.getBlockPos();
+        if (entity instanceof ArrowEntity) {
+            ArrowEntity arrowentity = (ArrowEntity) entity;
+            if (arrowentity.isOnFire() && !state.get(LIT) && !state.get(WATERLOGGED)) {
+                world.setBlockState(blockpos, state.with(Properties.LIT, Boolean.valueOf(true)), 11);
             }
         }
     }
 
-    public boolean receiveFluid(IWorld worldIn, BlockPos pos, BlockState state, IFluidState fluidStateIn) {
-        if (!state.get(BlockStateProperties.WATERLOGGED) && fluidStateIn.getFluid() == Fluids.WATER) {
+    @Override
+    public boolean tryFillWithFluid(IWorld world, BlockPos pos, BlockState state, FluidState fluidState) {
+        if (!state.get(Properties.WATERLOGGED) && fluidState.getFluid() == Fluids.WATER) {
             boolean flag = state.get(LIT);
             if (flag) {
-                worldIn.playSound((PlayerEntity) null, pos, SoundEvents.ENTITY_GENERIC_EXTINGUISH_FIRE, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                world.playSound((PlayerEntity) null, pos, SoundEvents.ENTITY_GENERIC_EXTINGUISH_FIRE, SoundCategory.BLOCKS, 1.0F, 1.0F);
             }
-            worldIn.setBlockState(pos, state.with(WATERLOGGED, Boolean.valueOf(true)).with(LIT, Boolean.valueOf(false)), 3);
-            worldIn.getPendingFluidTicks().scheduleTick(pos, fluidStateIn.getFluid(), fluidStateIn.getFluid().getTickRate(worldIn));
+            world.setBlockState(pos, state.with(WATERLOGGED, Boolean.valueOf(true)).with(LIT, Boolean.valueOf(false)), 3);
+            world.getFluidTickScheduler().schedule(pos, fluidState.getFluid(), fluidState.getFluid().getTickRate(world));
             return true;
         } else {
             return false;
         }
     }
 
-    public IFluidState getFluidState(BlockState state) {
-        return state.get(WATERLOGGED) ? Fluids.WATER.getStillFluidState(false) : super.getFluidState(state);
+    @Override
+    public FluidState getFluidState(BlockState state) {
+        return state.get(WATERLOGGED) ? Fluids.WATER.getStill(false) : super.getFluidState(state);
     }
 
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
+    @Override
+    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+        super.appendProperties(builder);
         builder.add(LIT, WATERLOGGED);
     }
 
 
-    public boolean allowsMovement(BlockState state, IBlockReader worldIn, BlockPos pos, PathType type) {
+    /* TODO: check if this actually unnecessary because of block settings
+    public boolean allowsMovement(BlockState state, BlockView worldIn, BlockPos pos, PathNodeType type) {
         return false;
     }
+
+     */
 
 }

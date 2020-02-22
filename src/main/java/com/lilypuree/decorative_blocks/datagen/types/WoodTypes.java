@@ -2,15 +2,13 @@ package com.lilypuree.decorative_blocks.datagen.types;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
 
 public enum WoodTypes {
     OAK("oak"), BIRCH("birch"), SPRUCE("spruce"), ACACIA("acacia"), JUNGLE("jungle"), DARK_OAK("dark_oak");
 
     private final String name;
 
-    private WoodTypes(String name) {
+    WoodTypes(String name) {
         this.name = name;
     }
 

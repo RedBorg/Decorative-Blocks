@@ -1,18 +1,15 @@
 package com.lilypuree.decorative_blocks.blocks;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.RotatedPillarBlock;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockReader;
+import net.minecraft.block.PillarBlock;
 
-public class BeamBlock extends RotatedPillarBlock {
+public class BeamBlock extends PillarBlock {
 
-    public BeamBlock(Block.Properties properties){
-        super(properties);
+    public BeamBlock(Block.Settings settings){
+        super(settings);
     }
 
+    /* TODO: use Fabric's FlammableBlockRegistry
     @Override
     public boolean isFlammable(BlockState state, IBlockReader world, BlockPos pos, Direction face) {
         return true;
@@ -22,4 +19,5 @@ public class BeamBlock extends RotatedPillarBlock {
     public int getFlammability(BlockState state, IBlockReader world, BlockPos pos, Direction face) {
         return 20;
     }
+     */
 }

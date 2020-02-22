@@ -2,55 +2,57 @@ package com.lilypuree.decorative_blocks.blocks;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.IWaterLoggable;
+import net.minecraft.block.Waterloggable;
+import net.minecraft.entity.EntityContext;
+import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
-import net.minecraft.fluid.IFluidState;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.tags.FluidTags;
-import net.minecraft.util.Direction;
+import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.state.StateManager;
+import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.state.property.Properties;
+import net.minecraft.tag.FluidTags;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.world.IBlockReader;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.world.BlockView;
 
-public class PillarBlock extends Block implements IWaterLoggable {
-    private final VoxelShape PILLAR_SHAPE = Block.makeCuboidShape(2D, 0.0D, 2D, 14D, 16.0D, 14D);
+public class PillarBlock extends Block implements Waterloggable {
+    private final VoxelShape PILLAR_SHAPE = Block.createCuboidShape(2D, 0.0D, 2D, 14D, 16.0D, 14D);
 
-    public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
+    public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
 
 
-    public PillarBlock(Block.Properties properties){
+    public PillarBlock(Settings properties) {
         super(properties);
-        this.setDefaultState(this.stateContainer.getBaseState().with(WATERLOGGED, Boolean.valueOf(false)));
+        this.setDefaultState(this.getStateManager().getDefaultState().with(WATERLOGGED, Boolean.valueOf(false)));
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+    public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, EntityContext context) {
         return PILLAR_SHAPE;
     }
 
-    public BlockState getStateForPlacement(BlockItemUseContext context) {
-        BlockState blockstate = context.getWorld().getBlockState(context.getPos());
-        IFluidState ifluidstate = context.getWorld().getFluidState(context.getPos());
-        boolean flag = ifluidstate.isTagged(FluidTags.WATER) && ifluidstate.getLevel() == 8;
+    @Override
+    public BlockState getPlacementState(ItemPlacementContext ctx) {
+        BlockState blockstate = ctx.getWorld().getBlockState(ctx.getBlockPos());
+        FluidState ifluidstate = ctx.getWorld().getFluidState(ctx.getBlockPos());
+        boolean flag = ifluidstate.matches(FluidTags.WATER) && ifluidstate.getLevel() == 8;
 
         return this.getDefaultState().with(WATERLOGGED, Boolean.valueOf(flag));
     }
 
-
-    public boolean propagatesSkylightDown(BlockState state, IBlockReader reader, BlockPos pos) {
+    // TODO: implement this (propagatesSkylightDown)
+    public boolean propagatesSkylightDown(BlockState state, BlockView reader, BlockPos pos) {
         return !state.get(WATERLOGGED);
     }
 
-    public IFluidState getFluidState(BlockState state) {
-        return state.get(WATERLOGGED) ? Fluids.WATER.getStillFluidState(false) : super.getFluidState(state);
+    @Override
+    public FluidState getFluidState(BlockState state) {
+        return state.get(WATERLOGGED) ? Fluids.WATER.getStill(false) : super.getFluidState(state);
     }
 
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
+    @Override
+    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+        super.appendProperties(builder);
         builder.add(WATERLOGGED);
     }
-
 }

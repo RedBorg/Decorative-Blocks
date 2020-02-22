@@ -3,118 +3,123 @@ package com.lilypuree.decorative_blocks.blocks;
 import com.lilypuree.decorative_blocks.entity.DummyEntityForSitting;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.HorizontalBlock;
-import net.minecraft.block.IWaterLoggable;
-import net.minecraft.entity.Entity;
+import net.minecraft.block.HorizontalFacingBlock;
+import net.minecraft.block.Waterloggable;
+import net.minecraft.entity.EntityContext;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
-import net.minecraft.fluid.IFluidState;
-import net.minecraft.item.BlockItemUseContext;
+import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.tags.FluidTags;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
+import net.minecraft.state.StateManager;
+import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.state.property.Properties;
+import net.minecraft.tag.FluidTags;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.MutableBoundingBox;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.world.IBlockReader;
+import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
-public class SeatBlock extends HorizontalBlock implements IWaterLoggable{
-    private static final VoxelShape SEAT_SHAPE_NS = Block.makeCuboidShape(0, 0.0D, 4D, 16D, 7D, 12D);
-    private static final VoxelShape SEAT_SHAPE_EW = Block.makeCuboidShape(4D, 0.0D, 0, 12D, 7D, 16D);
+public class SeatBlock extends HorizontalFacingBlock implements Waterloggable {
+    private static final VoxelShape SEAT_SHAPE_NS = Block.createCuboidShape(0, 0.0D, 4D, 16D, 7D, 12D);
+    private static final VoxelShape SEAT_SHAPE_EW = Block.createCuboidShape(4D, 0.0D, 0, 12D, 7D, 16D);
 
-    public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
-    public static final BooleanProperty OCCUPIED = BlockStateProperties.OCCUPIED;
+    public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
+    public static final BooleanProperty OCCUPIED = Properties.OCCUPIED;
 
-    public SeatBlock(Block.Properties properties){
+    public SeatBlock(Block.Settings properties) {
         super(properties);
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
-        Direction facing = state.get(HORIZONTAL_FACING);
-        switch (facing){
-            case NORTH:case SOUTH: return SEAT_SHAPE_NS;
-            case EAST:case WEST: return SEAT_SHAPE_EW;
+    public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, EntityContext context) {
+        Direction facing = state.get(FACING);
+        switch (facing) {
+            case NORTH:
+            case SOUTH:
+                return SEAT_SHAPE_NS;
+            case EAST:
+            case WEST:
+                return SEAT_SHAPE_EW;
         }
         return SEAT_SHAPE_NS;
     }
 
-    public BlockState getStateForPlacement(BlockItemUseContext context) {
-        BlockState blockstate = context.getWorld().getBlockState(context.getPos());
-        IFluidState ifluidstate = context.getWorld().getFluidState(context.getPos());
-        boolean flag = ifluidstate.isTagged(FluidTags.WATER) && ifluidstate.getLevel() == 8;
+    @Override
+    public BlockState getPlacementState(ItemPlacementContext ctx) {
+        BlockState blockstate = ctx.getWorld().getBlockState(ctx.getBlockPos());
+        FluidState ifluidstate = ctx.getWorld().getFluidState(ctx.getBlockPos());
+        boolean flag = ifluidstate.matches(FluidTags.WATER) && ifluidstate.getLevel() == 8;
 
-        return this.getDefaultState().with(HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite()).with(WATERLOGGED, Boolean.valueOf(flag)).with(OCCUPIED, Boolean.FALSE);
-    }
-
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
-        builder.add(HORIZONTAL_FACING, WATERLOGGED, OCCUPIED);
-    }
-
-    public boolean propagatesSkylightDown(BlockState state, IBlockReader reader, BlockPos pos) {
-        return !state.get(WATERLOGGED);
-    }
-
-    public IFluidState getFluidState(BlockState state) {
-        return state.get(WATERLOGGED) ? Fluids.WATER.getStillFluidState(false) : super.getFluidState(state);
+        return this.getDefaultState().with(FACING, ctx.getPlacementDirections()[0].getOpposite()).with(WATERLOGGED, Boolean.valueOf(flag)).with(OCCUPIED, Boolean.FALSE);
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
-        ItemStack heldItem = player.getHeldItem(handIn);
-        BlockState upperBlock = worldIn.getBlockState(pos.up());
-        boolean canSit = hit.getFace() == Direction.UP && !state.get(OCCUPIED) && heldItem.isEmpty() && upperBlock.isAir(worldIn,pos.up()) && isPlayerInRange(player, pos);
-        if(!worldIn.isRemote() && canSit){
-            DummyEntityForSitting seat = new DummyEntityForSitting(worldIn, pos);
-            worldIn.addEntity(seat);
-            player.startRiding(seat);
-            return ActionResultType.SUCCESS;
-        }
-        return super.onBlockActivated(state, worldIn, pos, player, handIn, hit);
+    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+        super.appendProperties(builder);
+        builder.add(FACING, WATERLOGGED, OCCUPIED);
     }
 
-    private static boolean isPlayerInRange(PlayerEntity player, BlockPos pos)
-    {
-        BlockPos playerPos = player.getPosition();
+    // TODO: Figure out if needed
+    public boolean propagatesSkylightDown(BlockState state, BlockView reader, BlockPos pos) {
+        return !state.get(WATERLOGGED);
+    }
+
+    @Override
+    public FluidState getFluidState(BlockState state) {
+        return state.get(WATERLOGGED) ? Fluids.WATER.getStill(false) : super.getFluidState(state);
+    }
+
+    @Override
+    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+        ItemStack heldItem = player.getStackInHand(hand);
+        BlockState upperBlock = world.getBlockState(pos.up());
+        boolean canSit = hit.getSide() == Direction.UP && !state.get(OCCUPIED) && heldItem.isEmpty() && upperBlock.isAir() && isPlayerInRange(player, pos);
+        if (world.isClient && canSit) {
+            DummyEntityForSitting seat = new DummyEntityForSitting(world, pos);
+            world.spawnEntity(seat);
+            player.startRiding(seat);
+            return ActionResult.SUCCESS;
+        }
+        return super.onUse(state, world, pos, player, hand, hit);
+    }
+
+    private static boolean isPlayerInRange(PlayerEntity player, BlockPos pos) {
+        BlockPos playerPos = player.getBlockPos();
         int blockReachDistance = 3;
 
-        if(blockReachDistance == 0) //player has to stand on top of the block
+        if (blockReachDistance == 0) //player has to stand on top of the block
             return playerPos.getY() - pos.getY() <= 1 && playerPos.getX() - pos.getX() == 0 && playerPos.getZ() - pos.getZ() == 0;
 
         pos = pos.add(0.5D, 0.5D, 0.5D);
 
-        AxisAlignedBB range = new AxisAlignedBB(pos.getX() + blockReachDistance, pos.getY() + blockReachDistance, pos.getZ() + blockReachDistance, pos.getX() - blockReachDistance, pos.getY() - blockReachDistance, pos.getZ() - blockReachDistance);
+
+        Box range = new Box(pos.getX() + blockReachDistance, pos.getY() + blockReachDistance, pos.getZ() + blockReachDistance, pos.getX() - blockReachDistance, pos.getY() - blockReachDistance, pos.getZ() - blockReachDistance);
 
         playerPos = playerPos.add(0.5D, 0.5D, 0.5D);
-        return range.minX <= playerPos.getX() && range.minY <= playerPos.getY() && range.minZ <= playerPos.getZ() && range.maxX >= playerPos.getX() && range.maxY >= playerPos.getY() && range.maxZ >= playerPos.getZ();
+        return range.getMin(Direction.Axis.X) <= playerPos.getX() && range.getMin(Direction.Axis.Y) <= playerPos.getY() && range.getMin(Direction.Axis.Z) <= playerPos.getZ() && range.getMax(Direction.Axis.X) >= playerPos.getX() && range.getMax(Direction.Axis.Y) >= playerPos.getY() && range.getMax(Direction.Axis.Z) >= playerPos.getZ();
     }
 
     @Override
-    public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+    public void onBlockRemoved(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
         double x = pos.getX();
         double y = pos.getY();
         double z = pos.getZ();
-        List<DummyEntityForSitting> entities = worldIn.getEntitiesWithinAABB(DummyEntityForSitting.class, new AxisAlignedBB(x, y, z, x,y,z));
-        for(DummyEntityForSitting entity : entities){
+        List<DummyEntityForSitting> entities = world.getEntities(DummyEntityForSitting.class, new Box(x, y, z, x, y, z), null);
+        for (DummyEntityForSitting entity : entities) {
             entity.remove();
         }
-        super.onReplaced(state, worldIn, pos, newState, isMoving);
+        super.onBlockRemoved(state, world, pos, newState, moved);
     }
 
-
+    /* TODO: Implement Fabric's FlammableBlockRegistry
     @Override
     public boolean isFlammable(BlockState state, IBlockReader world, BlockPos pos, Direction face) {
         return true;
@@ -124,4 +129,5 @@ public class SeatBlock extends HorizontalBlock implements IWaterLoggable{
     public int getFlammability(BlockState state, IBlockReader world, BlockPos pos, Direction face) {
         return 20;
     }
+     */
 }

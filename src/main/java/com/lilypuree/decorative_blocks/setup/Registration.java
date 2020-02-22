@@ -4,74 +4,70 @@ import com.google.common.collect.ImmutableMap;
 import com.lilypuree.decorative_blocks.blocks.*;
 import com.lilypuree.decorative_blocks.datagen.types.WoodTypes;
 import com.lilypuree.decorative_blocks.entity.DummyEntityForSitting;
-import com.lilypuree.decorative_blocks.items.BurnableBlockItem;
+import com.lilypuree.decorative_blocks.utils.DeferredRegister;
+import net.fabricmc.fabric.api.block.FabricBlockSettings;
+import net.fabricmc.fabric.api.entity.FabricEntityTypeBuilder;
 import net.minecraft.block.Block;
-import net.minecraft.block.RotatedPillarBlock;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.material.MaterialColor;
-import net.minecraft.entity.EntityClassification;
+import net.minecraft.block.Material;
+import net.minecraft.block.MaterialColor;
+import net.minecraft.entity.EntityCategory;
+import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.RegistryObject;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.sound.BlockSoundGroup;
+import net.minecraft.util.registry.Registry;
 
 import static com.lilypuree.decorative_blocks.DecorativeBlocks.MODID;
 
 public class Registration {
-    public static final DeferredRegister<Item> ITEMS = new DeferredRegister<>(ForgeRegistries.ITEMS, MODID);
-    public static final DeferredRegister<Block> BLOCKS = new DeferredRegister<>(ForgeRegistries.BLOCKS, MODID);
-    public static final DeferredRegister<EntityType<?>> ENTITIES = new DeferredRegister<>(ForgeRegistries.ENTITIES, MODID);
+    public static final DeferredRegister<Item> ITEMS = new DeferredRegister<>(Registry.ITEM, MODID);
+    public static final DeferredRegister<Block> BLOCKS = new DeferredRegister<>(Registry.BLOCK, MODID);
+    public static final DeferredRegister<EntityType<?>> ENTITIES = new DeferredRegister<>(Registry.ENTITY_TYPE, MODID);
 
 
     public static void register() {
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-        ITEMS.register(modEventBus);
-        BLOCKS.register(modEventBus);
-        ENTITIES.register(modEventBus);
+        ITEMS.register();
+        BLOCKS.register();
+        ENTITIES.register();
     }
 
-    public static final RegistryObject<BarPanelBlock> BAR_PANEL = BLOCKS.register("bar_panel", ()-> new BarPanelBlock(Block.Properties.create(Material.IRON, MaterialColor.BLACK).notSolid().hardnessAndResistance(5.0F).sound(SoundType.METAL)));
-    public static final RegistryObject<ChainBlock> CHAIN = BLOCKS.register("chain", ()-> new ChainBlock(Block.Properties.create(Material.IRON, MaterialColor.BLACK).hardnessAndResistance(4.3F).sound(SoundType.METAL)));
-    public static final RegistryObject<ChandelierBlock> CHANDELIER = BLOCKS.register("chandelier", ()->new ChandelierBlock(Block.Properties.create(Material.MISCELLANEOUS).doesNotBlockMovement().hardnessAndResistance(0.3F).sound(SoundType.WOOD)));
-    public static final RegistryObject<BrazierBlock> BRAZIER = BLOCKS.register("brazier", ()->new BrazierBlock(Block.Properties.create(Material.IRON).hardnessAndResistance(3.0F).sound(SoundType.METAL)));
-    public static final RegistryObject<PillarBlock> STONE_PILLAR = BLOCKS.register("stone_pillar", ()->new PillarBlock(Block.Properties.create(Material.ROCK).hardnessAndResistance(1.5F, 6.5F)));
-    public static final RegistryObject<Block> ROCKY_DIRT = BLOCKS.register("rocky_dirt", ()->new RockyDirtBlock());
+    public static final BarPanelBlock BAR_PANEL = BLOCKS.add("bar_panel", new BarPanelBlock(FabricBlockSettings.of(Material.METAL, MaterialColor.BLACK).nonOpaque().strength(5.0F, 5.0f).sounds(BlockSoundGroup.METAL).build()));
+    public static final ChainBlock CHAIN = BLOCKS.add("chain", new ChainBlock(FabricBlockSettings.of(Material.METAL, MaterialColor.BLACK).strength(4.3F, 4.3f).sounds(BlockSoundGroup.METAL).build()));
+    public static final ChandelierBlock CHANDELIER = BLOCKS.add("chandelier", new ChandelierBlock(FabricBlockSettings.of(Material.AIR).noCollision().strength(0.3F, 0.3f).sounds(BlockSoundGroup.WOOD).build()));
+    public static final BrazierBlock BRAZIER = BLOCKS.add("brazier", new BrazierBlock(FabricBlockSettings.of(Material.METAL).strength(3.0F, 3.0f).sounds(BlockSoundGroup.METAL).build()));
+    public static final PillarBlock STONE_PILLAR = BLOCKS.add("stone_pillar", new PillarBlock(FabricBlockSettings.of(Material.STONE).strength(1.5F, 6.5F).build()));
+    public static final Block ROCKY_DIRT = BLOCKS.add("rocky_dirt", new RockyDirtBlock());
+    public static final Item BAR_PANEL_ITEM = ITEMS.add("bar_panel", new BlockItem(BAR_PANEL, new Item.Settings().group(ItemGroup.DECORATIONS)));
+    public static final Item CHAIN_ITEM = ITEMS.add("chain", new BlockItem(CHAIN, new Item.Settings().group(ItemGroup.DECORATIONS)));
+    // TODO: burn time: 1600
+    public static final Item CHANDELIER_ITEM = ITEMS.add("chandelier", new BlockItem(CHANDELIER, new Item.Settings().group(ItemGroup.DECORATIONS)));
+    public static final Item BRAZIER_ITEM = ITEMS.add("brazier", new BlockItem(BRAZIER, new Item.Settings().group(ItemGroup.DECORATIONS)));
+    public static final Item STONE_PILLAR_ITEM = ITEMS.add("stone_pillar", new BlockItem(STONE_PILLAR, new Item.Settings().group(ItemGroup.DECORATIONS)));
+    public static final Item ROCKY_DIRT_ITEM = ITEMS.add("rocky_dirt", new BlockItem(ROCKY_DIRT, new Item.Settings().group(ItemGroup.DECORATIONS)));
 
-    public static final RegistryObject<Item> BAR_PANEL_ITEM = ITEMS.register("bar_panel", () -> new BlockItem(BAR_PANEL.get(), new Item.Properties().group(ItemGroup.DECORATIONS)));
-    public static final RegistryObject<Item> CHAIN_ITEM = ITEMS.register("chain", () -> new BlockItem(CHAIN.get(), new Item.Properties().group(ItemGroup.DECORATIONS)));
-    public static final RegistryObject<Item> CHANDELIER_ITEM = ITEMS.register("chandelier", () -> new BurnableBlockItem(CHANDELIER.get(), new Item.Properties().group(ItemGroup.DECORATIONS), 1600));
-    public static final RegistryObject<Item> BRAZIER_ITEM = ITEMS.register("brazier", () -> new BlockItem(BRAZIER.get(), new Item.Properties().group(ItemGroup.DECORATIONS)));
-    public static final RegistryObject<Item> STONE_PILLAR_ITEM = ITEMS.register("stone_pillar", () -> new BlockItem(STONE_PILLAR.get(), new Item.Properties().group(ItemGroup.DECORATIONS)));
-    public static final RegistryObject<Item> ROCKY_DIRT_ITEM = ITEMS.register("rocky_dirt", () -> new BlockItem(ROCKY_DIRT.get(), new Item.Properties().group(ItemGroup.DECORATIONS)));
+    public static final EntityType<DummyEntityForSitting> DUMMY_ENTITY_TYPE = ENTITIES.add("dummy", FabricEntityTypeBuilder.<DummyEntityForSitting>create(EntityCategory.MISC, DummyEntityForSitting::new)
+            .trackable(256, 20)
+            .size(EntityDimensions.fixed(0.00001f, 0.00001f))
+            .build());
 
-    public static final RegistryObject<EntityType<DummyEntityForSitting>> DUMMY_ENTITY_TYPE = ENTITIES.register("dummy", ()->EntityType.Builder.<DummyEntityForSitting>create(DummyEntityForSitting::new, EntityClassification.MISC)
-    .setTrackingRange(256)
-    .setUpdateInterval(20)
-    .size(0.0001F, 0.0001F)
-    .build(MODID + ":dummy"));
-
-    public static final ImmutableMap<String, RegistryObject<BeamBlock>> BEAM_BLOCKS;
-    public static final ImmutableMap<String, RegistryObject<PalisadeBlock>> PALISADE_BLOCKS;
-    public static final ImmutableMap<String, RegistryObject<SeatBlock>> SEAT_BLOCKS;
-    public static final ImmutableMap<String, RegistryObject<SupportBlock>> SUPPORT_BLOCKS;
-    public static final ImmutableMap<String, RegistryObject<Item>> ITEMBLOCKS;
+    public static ImmutableMap<String, BeamBlock> BEAM_BLOCKS;
+    public static ImmutableMap<String, PalisadeBlock> PALISADE_BLOCKS;
+    public static ImmutableMap<String, SeatBlock> SEAT_BLOCKS;
+    public static ImmutableMap<String, SupportBlock> SUPPORT_BLOCKS;
+    public static ImmutableMap<String, Item> ITEMBLOCKS;
 
     static {
-        ImmutableMap.Builder<String, RegistryObject<BeamBlock>> beamBlockBuilder = ImmutableMap.builder();
-        ImmutableMap.Builder<String, RegistryObject<PalisadeBlock>> palisadeBlockBuilder = ImmutableMap.builder();
-        ImmutableMap.Builder<String, RegistryObject<SeatBlock>> seatBlockBuilder = ImmutableMap.builder();
-        ImmutableMap.Builder<String, RegistryObject<SupportBlock>> supportBlockBuilder = ImmutableMap.builder();
-        ImmutableMap.Builder<String, RegistryObject<Item>> itemBuilder = ImmutableMap.builder();
+        ImmutableMap.Builder<String, BeamBlock> beamBlockBuilder = ImmutableMap.builder();
+        ImmutableMap.Builder<String, PalisadeBlock> palisadeBlockBuilder = ImmutableMap.builder();
+        ImmutableMap.Builder<String, SeatBlock> seatBlockBuilder = ImmutableMap.builder();
+        ImmutableMap.Builder<String, SupportBlock> supportBlockBuilder = ImmutableMap.builder();
+        ImmutableMap.Builder<String, Item> itemBuilder = ImmutableMap.builder();
 
-        Block.Properties woodProperty = Block.Properties.create(Material.WOOD, MaterialColor.WOOD).hardnessAndResistance(1.2F).sound(SoundType.WOOD);
-        Block.Properties palisadeProperty = Block.Properties.create(Material.WOOD, MaterialColor.WOOD).hardnessAndResistance(2.0F, 4.0F).sound(SoundType.WOOD);
-        Item.Properties buildingBlockItemProperty = new Item.Properties().group(ItemGroup.DECORATIONS);
+        Block.Settings woodProperty = FabricBlockSettings.of(Material.WOOD, MaterialColor.WOOD).strength(1.2F, 1.2f).sounds(BlockSoundGroup.WOOD).build();
+        Block.Settings palisadeProperty = FabricBlockSettings.of(Material.WOOD, MaterialColor.WOOD).strength(2.0F, 4.0F).sounds(BlockSoundGroup.WOOD).build();
+        Item.Settings buildingBlockItemProperty = new Item.Settings().group(ItemGroup.DECORATIONS);
 
         for(WoodTypes wood : WoodTypes.values()){
             String beamName = wood + "_beam";
@@ -84,15 +80,17 @@ public class Registration {
             SeatBlock seatBlock = new SeatBlock(woodProperty);
             SupportBlock supportBlock = new SupportBlock(woodProperty);
 
-            beamBlockBuilder.put(beamName, BLOCKS.register(beamName, ()-> beamBlock));
-            palisadeBlockBuilder.put(palisadeName, BLOCKS.register(palisadeName, ()-> palisadeBlock));
-            seatBlockBuilder.put(seatName, BLOCKS.register(seatName, ()-> seatBlock));
-            supportBlockBuilder.put(supportName, BLOCKS.register(supportName, ()-> supportBlock));
+            beamBlockBuilder.put(beamName, BLOCKS.add(beamName, beamBlock));
+            palisadeBlockBuilder.put(palisadeName, BLOCKS.add(palisadeName, palisadeBlock));
+            seatBlockBuilder.put(seatName, BLOCKS.add(seatName, seatBlock));
+            supportBlockBuilder.put(supportName, BLOCKS.add(supportName, supportBlock));
 
-            itemBuilder.put(beamName, ITEMS.register(beamName, ()->new BurnableBlockItem(beamBlock, buildingBlockItemProperty, 300)));
-            itemBuilder.put(palisadeName, ITEMS.register(palisadeName, ()->new BurnableBlockItem(palisadeBlock, buildingBlockItemProperty, 300)));
-            itemBuilder.put(seatName, ITEMS.register(seatName, ()->new BurnableBlockItem(seatBlock, buildingBlockItemProperty, 300)));
-            itemBuilder.put(supportName, ITEMS.register(supportName, ()->new BurnableBlockItem(supportBlock, buildingBlockItemProperty, 300)));
+            // TODO: replace BurnableBlockItem with Fabric's FuelRegistry, all 300 burn time
+            itemBuilder.put(beamName, ITEMS.add(beamName, new BlockItem(beamBlock, buildingBlockItemProperty)));
+            itemBuilder.put(palisadeName, ITEMS.add(palisadeName, new BlockItem(palisadeBlock, buildingBlockItemProperty)));
+            itemBuilder.put(seatName, ITEMS.add(seatName, new BlockItem(seatBlock, buildingBlockItemProperty)));
+            itemBuilder.put(supportName, ITEMS.add(supportName, new BlockItem(supportBlock, buildingBlockItemProperty)));
+
         }
 
         BEAM_BLOCKS = beamBlockBuilder.build();
@@ -102,24 +100,24 @@ public class Registration {
         ITEMBLOCKS = itemBuilder.build();
     }
 
-    public static RotatedPillarBlock getBeamBlock(WoodTypes wood){
+    public static net.minecraft.block.PillarBlock getBeamBlock(WoodTypes wood){
         String name = wood + "_beam";
-        return BEAM_BLOCKS.get(name).get();
+        return BEAM_BLOCKS.get(name);
     }
 
     public static Block getPalisadeBlock(WoodTypes wood){
         String name = wood + "_palisade";
-        return PALISADE_BLOCKS.get(name).get();
+        return PALISADE_BLOCKS.get(name);
     }
 
     public static SeatBlock getSeatBlock(WoodTypes wood){
         String name = wood + "_seat";
-        return SEAT_BLOCKS.get(name).get();
+        return SEAT_BLOCKS.get(name);
     }
 
     public static SupportBlock getSupportBlock(WoodTypes wood){
         String name = wood + "_support";
-        return SUPPORT_BLOCKS.get(name).get();
+        return SUPPORT_BLOCKS.get(name);
     }
 }
 

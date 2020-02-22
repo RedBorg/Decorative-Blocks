@@ -1,0 +1,38 @@
+
+{
+  "schemaVersion": 1,
+  "id": "modid",
+  "version": "${version}",
+
+  "name": "Decorative Blocks",
+  "description": "A small mod that adds several new decorative blocks.",
+  "authors": [
+    "lilypuree",
+    "stohun"
+  ],
+  "contact": {
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/decorative-blocks",
+    "sources": "https://github.com/lilypuree/Decorative-Blocks"
+  },
+
+  "license": "MIT",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.lilypuree.decorative_blocks.DecorativeBlocks"
+    ],
+    "client": [
+      "com.lilypuree.decorative_blocks.setup.ClientSetup"
+    ]
+  },
+
+  "depends": {
+    "fabricloader": ">=0.7.2",
+    "fabric": "*",
+    "minecraft": "1.16-alpha.20.8.a"
+  },
+  "suggests": {
+    "flamingo": "*"
+  }
+}

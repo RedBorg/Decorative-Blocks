@@ -5,7 +5,7 @@ public enum WoodDecorativeBlockTypes {
 
     private final String name;
 
-    private WoodDecorativeBlockTypes(String name) {
+    WoodDecorativeBlockTypes(String name) {
         this.name = name;
     }
 
