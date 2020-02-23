@@ -1,12 +1,14 @@
 package com.lilypuree.decorative_blocks.setup;
 
 import com.google.common.collect.ImmutableMap;
+import com.lilypuree.decorative_blocks.DecorativeBlocks;
 import com.lilypuree.decorative_blocks.blocks.*;
 import com.lilypuree.decorative_blocks.datagen.types.WoodTypes;
 import com.lilypuree.decorative_blocks.entity.DummyEntityForSitting;
 import com.lilypuree.decorative_blocks.utils.DeferredRegister;
 import net.fabricmc.fabric.api.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.entity.FabricEntityTypeBuilder;
+import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.block.Material;
 import net.minecraft.block.MaterialColor;
@@ -17,6 +19,7 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.sound.BlockSoundGroup;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
 import static com.lilypuree.decorative_blocks.DecorativeBlocks.MODID;
@@ -32,6 +35,10 @@ public class Registration {
         BLOCKS.register();
         ENTITIES.register();
     }
+
+    public static final Identifier SPAWN_DUMMY_SEAT_ID = new Identifier(MODID, "spawn_dummy");
+
+
 
     public static final BarPanelBlock BAR_PANEL = BLOCKS.add("bar_panel", new BarPanelBlock(FabricBlockSettings.of(Material.METAL, MaterialColor.BLACK).nonOpaque().strength(5.0F, 5.0f).sounds(BlockSoundGroup.METAL).build()));
     public static final ChainBlock CHAIN = BLOCKS.add("chain", new ChainBlock(FabricBlockSettings.of(Material.METAL, MaterialColor.BLACK).strength(4.3F, 4.3f).sounds(BlockSoundGroup.METAL).build()));
@@ -49,7 +56,7 @@ public class Registration {
 
     public static final EntityType<DummyEntityForSitting> DUMMY_ENTITY_TYPE = ENTITIES.add("dummy", FabricEntityTypeBuilder.<DummyEntityForSitting>create(EntityCategory.MISC, DummyEntityForSitting::new)
             .trackable(256, 20)
-            .size(EntityDimensions.fixed(0.00001f, 0.00001f))
+            .size(EntityDimensions.fixed(0.001f, 0.001f))
             .build());
 
     public static ImmutableMap<String, BeamBlock> BEAM_BLOCKS;

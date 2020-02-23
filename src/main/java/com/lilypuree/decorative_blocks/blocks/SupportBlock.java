@@ -38,7 +38,7 @@ public class SupportBlock extends HorizontalFacingBlock implements Waterloggable
 
     public SupportBlock(Block.Settings properties) {
         super(properties);
-        this.setDefaultState(this.getStateManager().getDefaultState().with(WATERLOGGED, Boolean.valueOf(false)));
+        this.setDefaultState(this.getStateManager().getDefaultState().with(FACING, Direction.NORTH).with(WATERLOGGED, Boolean.FALSE));
     }
 
     @Override
@@ -63,7 +63,7 @@ public class SupportBlock extends HorizontalFacingBlock implements Waterloggable
         FluidState fluidstate = ctx.getWorld().getFluidState(ctx.getBlockPos());
         boolean flag = fluidstate.matches(FluidTags.WATER) && fluidstate.getLevel() == 8;
 
-        return this.getDefaultState().with(HORIZONTAL_FACING, ctx.getPlacementDirections()[0].getOpposite()).with(WATERLOGGED, Boolean.valueOf(flag));
+        return this.getDefaultState().with(HORIZONTAL_FACING, ctx.getPlayerFacing().getOpposite()).with(WATERLOGGED, flag);
     }
 
     @Override

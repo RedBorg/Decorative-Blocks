@@ -27,6 +27,7 @@ import net.minecraft.world.World;
 
 import java.util.List;
 
+// TODO: improve seat dismount
 public class SeatBlock extends HorizontalFacingBlock implements Waterloggable {
     private static final VoxelShape SEAT_SHAPE_NS = Block.createCuboidShape(0, 0.0D, 4D, 16D, 7D, 12D);
     private static final VoxelShape SEAT_SHAPE_EW = Block.createCuboidShape(4D, 0.0D, 0, 12D, 7D, 16D);
@@ -36,6 +37,7 @@ public class SeatBlock extends HorizontalFacingBlock implements Waterloggable {
 
     public SeatBlock(Block.Settings properties) {
         super(properties);
+        setDefaultState(this.getStateManager().getDefaultState().with(FACING, Direction.NORTH).with(OCCUPIED, false).with(WATERLOGGED, false));
     }
 
     @Override
@@ -54,11 +56,11 @@ public class SeatBlock extends HorizontalFacingBlock implements Waterloggable {
 
     @Override
     public BlockState getPlacementState(ItemPlacementContext ctx) {
-        BlockState blockstate = ctx.getWorld().getBlockState(ctx.getBlockPos());
+        //BlockState blockstate = ctx.getWorld().getBlockState(ctx.getBlockPos());
         FluidState ifluidstate = ctx.getWorld().getFluidState(ctx.getBlockPos());
         boolean flag = ifluidstate.matches(FluidTags.WATER) && ifluidstate.getLevel() == 8;
 
-        return this.getDefaultState().with(FACING, ctx.getPlacementDirections()[0].getOpposite()).with(WATERLOGGED, Boolean.valueOf(flag)).with(OCCUPIED, Boolean.FALSE);
+        return this.getDefaultState().with(FACING, ctx.getPlayerFacing().getOpposite()).with(WATERLOGGED, flag).with(OCCUPIED, Boolean.FALSE);
     }
 
     @Override
@@ -82,12 +84,20 @@ public class SeatBlock extends HorizontalFacingBlock implements Waterloggable {
         ItemStack heldItem = player.getStackInHand(hand);
         BlockState upperBlock = world.getBlockState(pos.up());
         boolean canSit = hit.getSide() == Direction.UP && !state.get(OCCUPIED) && heldItem.isEmpty() && upperBlock.isAir() && isPlayerInRange(player, pos);
-        if (world.isClient && canSit) {
+        if (!world.isClient && canSit) {
             DummyEntityForSitting seat = new DummyEntityForSitting(world, pos);
-            world.spawnEntity(seat);
-            player.startRiding(seat);
-            return ActionResult.SUCCESS;
+            if (world.spawnEntity(seat)) {
+
+                if (!player.startRiding(seat, true)) {
+                    LOGGER.warn("Decorative Blocks: Could not ride a seat!");
+                }
+                return ActionResult.SUCCESS;
+            } else {
+                LOGGER.warn("Decorative Blocks: Could not create a dummy entity for a seat!");
+                return ActionResult.FAIL;
+            }
         }
+
         return super.onUse(state, world, pos, player, hand, hit);
     }
 
