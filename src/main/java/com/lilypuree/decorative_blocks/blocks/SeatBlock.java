@@ -128,16 +128,4 @@ public class SeatBlock extends HorizontalFacingBlock implements Waterloggable {
         }
         super.onBlockRemoved(state, world, pos, newState, moved);
     }
-
-    /* TODO: Implement Fabric's FlammableBlockRegistry
-    @Override
-    public boolean isFlammable(BlockState state, IBlockReader world, BlockPos pos, Direction face) {
-        return true;
-    }
-
-    @Override
-    public int getFlammability(BlockState state, IBlockReader world, BlockPos pos, Direction face) {
-        return 20;
-    }
-     */
 }

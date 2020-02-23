@@ -81,16 +81,4 @@ public class SupportBlock extends HorizontalFacingBlock implements Waterloggable
     public FluidState getFluidState(BlockState state) {
         return state.get(WATERLOGGED) ? Fluids.WATER.getStill(false) : super.getFluidState(state);
     }
-
-    /* TODO: Implement Fabric's FlammableBlockRegistry
-    @Override
-    public boolean isFlammable(BlockState state, IBlockReader world, BlockPos pos, Direction face) {
-        return true;
-    }
-
-    @Override
-    public int getFlammability(BlockState state, IBlockReader world, BlockPos pos, Direction face) {
-        return 20;
-    }
-     */
 }
