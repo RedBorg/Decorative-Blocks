@@ -4,7 +4,8 @@
   "package": "com.lilypuree.decorative_blocks.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "MixinServerPlayerEntity"
+    "MixinServerPlayerEntity",
+    "MixinPlantBlock"
   ],
   "injectors": {
     "defaultRequire": 1
