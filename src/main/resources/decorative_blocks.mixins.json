@@ -1,0 +1,12 @@
+
+{
+  "required": true,
+  "package": "com.lilypuree.decorative_blocks.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "MixinServerPlayerEntity"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -13,7 +13,13 @@ import net.minecraft.world.World;
 
 public class DummyEntityForSitting extends Entity {
 
-    protected boolean shouldKill = false;
+    public static final double OFFSET_X = 0.5D;
+    public static final double OFFSET_Y = 0.22D;
+    public static final double OFFSET_Z = 0.5D;
+
+    public DummyEntityForSitting(World world) {
+        this(Registration.DUMMY_ENTITY_TYPE, world);
+    }
 
     public DummyEntityForSitting(EntityType<? extends DummyEntityForSitting> type, World world) {
         super(type, world);
@@ -21,19 +27,13 @@ public class DummyEntityForSitting extends Entity {
 
     public DummyEntityForSitting(World world, BlockPos pos) {
         super(Registration.DUMMY_ENTITY_TYPE, world);
-        setPos(pos.getX() + 0.5D, pos.getY() + 0.22D, pos.getZ() + 0.5D);
+        double x = pos.getX() + OFFSET_X;
+        double y = pos.getY() + OFFSET_Y;
+        double z = pos.getZ() + OFFSET_Z;
+        setPos(x, y, z);
+        updateTrackedPosition(x, y, z);
+        updatePosition(x, y, z);
         noClip = true;
-    }
-
-
-    // TODO: remove this method that runs each tick, replace by event listener
-    @Override
-    public void tick() {
-        if (!world.isClient) {
-            if (!hasPlayerRider() && shouldKill) {
-                this.kill();
-            } else shouldKill = !hasPlayerRider();
-        }
     }
 
 

@@ -18,7 +18,6 @@ public class DecorativeBlocks implements ModInitializer {
     public DecorativeBlocks() {
         instance = this;
 
-
         // TODO: Look into FMLJavaModLoadingContext
         //FMLJavaModLoadingContext.get().getModEventBus().addListener((FMLCommonSetupEvent e) -> setup.init(e));
         //FMLJavaModLoadingContext.get().getModEventBus().addListener(ClientSetup::init);

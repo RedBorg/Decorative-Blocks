@@ -71,7 +71,7 @@ public class Registration {
     public static final Item STONE_PILLAR_ITEM = ITEMS.add("stone_pillar", new BlockItem(STONE_PILLAR, new Item.Settings().group(ItemGroup.DECORATIONS)));
     public static final Item ROCKY_DIRT_ITEM = ITEMS.add("rocky_dirt", new BlockItem(ROCKY_DIRT, new Item.Settings().group(ItemGroup.DECORATIONS)));
 
-    public static final EntityType<DummyEntityForSitting> DUMMY_ENTITY_TYPE = ENTITIES.add("dummy", FabricEntityTypeBuilder.<DummyEntityForSitting>create(EntityCategory.MISC, DummyEntityForSitting::new)
+    public static final EntityType<DummyEntityForSitting> DUMMY_ENTITY_TYPE = ENTITIES.add("dummy", FabricEntityTypeBuilder.<DummyEntityForSitting>create(EntityCategory.MISC, (entityType, world) -> new DummyEntityForSitting(entityType, world))
             .trackable(256, 20)
             .size(EntityDimensions.fixed(0.001f, 0.001f))
             .build());

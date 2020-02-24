@@ -1,6 +1,8 @@
 package com.lilypuree.decorative_blocks.blocks;
 
+import com.lilypuree.decorative_blocks.DecorativeBlocks;
 import com.lilypuree.decorative_blocks.entity.DummyEntityForSitting;
+import com.lilypuree.decorative_blocks.setup.Registration;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.HorizontalFacingBlock;
@@ -27,7 +29,6 @@ import net.minecraft.world.World;
 
 import java.util.List;
 
-// TODO: improve seat dismount
 public class SeatBlock extends HorizontalFacingBlock implements Waterloggable {
     private static final VoxelShape SEAT_SHAPE_NS = Block.createCuboidShape(0, 0.0D, 4D, 16D, 7D, 12D);
     private static final VoxelShape SEAT_SHAPE_EW = Block.createCuboidShape(4D, 0.0D, 0, 12D, 7D, 16D);
@@ -85,6 +86,8 @@ public class SeatBlock extends HorizontalFacingBlock implements Waterloggable {
         BlockState upperBlock = world.getBlockState(pos.up());
         boolean canSit = hit.getSide() == Direction.UP && !state.get(OCCUPIED) && heldItem.isEmpty() && upperBlock.isAir() && isPlayerInRange(player, pos);
         if (!world.isClient && canSit) {
+            // make sure we don't accumulate dummies
+            removeDummies(world, pos);
             DummyEntityForSitting seat = new DummyEntityForSitting(world, pos);
             if (world.spawnEntity(seat)) {
 
@@ -119,13 +122,23 @@ public class SeatBlock extends HorizontalFacingBlock implements Waterloggable {
 
     @Override
     public void onBlockRemoved(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        double x = pos.getX();
-        double y = pos.getY();
-        double z = pos.getZ();
-        List<DummyEntityForSitting> entities = world.getEntities(DummyEntityForSitting.class, new Box(x, y, z, x, y, z), null);
+        removeDummies(world, pos);
+        super.onBlockRemoved(state, world, pos, newState, moved);
+    }
+
+    /**
+     * This will remove all {@link DummyEntityForSitting} in the pos
+     * @param world
+     * @param pos
+     */
+    protected void removeDummies(World world, BlockPos pos) {
+        double x = pos.getX() + DummyEntityForSitting.OFFSET_X;
+        double y = pos.getY() + DummyEntityForSitting.OFFSET_Y;
+        double z = pos.getZ() + DummyEntityForSitting.OFFSET_Z;
+        List<DummyEntityForSitting> entities = world.getEntities(Registration.DUMMY_ENTITY_TYPE, new Box(x, y, z, x, y, z).expand(.3), (entity) -> true);
         for (DummyEntityForSitting entity : entities) {
+            entity.removeAllPassengers();
             entity.remove();
         }
-        super.onBlockRemoved(state, world, pos, newState, moved);
     }
 }
