@@ -88,7 +88,7 @@ public class BrazierBlock extends Block implements Waterloggable {
             if (hit.getSide() == Direction.UP && heldItem.getItem() == Items.FLINT_AND_STEEL || heldItem.getItem() == Items.FIRE_CHARGE) {
 
                 SoundEvent sound = (heldItem.getItem() == Items.FIRE_CHARGE) ? SoundEvents.ITEM_FIRECHARGE_USE : SoundEvents.ITEM_FLINTANDSTEEL_USE;
-                world.playSound((PlayerEntity) null, pos, sound, SoundCategory.BLOCKS, 1.0F, world.random.nextFloat() * 0.4F + 0.8F);
+                world.playSound((PlayerEntity) null, pos, sound, SoundCategory.BLOCKS, .6F, world.random.nextFloat() * 0.4F + 0.8F);
 
                 world.setBlockState(pos, state.with(LIT, Boolean.TRUE));
 //                if (player != null) {
@@ -96,7 +96,7 @@ public class BrazierBlock extends Block implements Waterloggable {
 //                        p_219998_1_.sendBreakAnimation(handIn);
 //                    });
 //                }
-                return ActionResult.CONSUME;
+                return ActionResult.SUCCESS;
 
             }
         }
