@@ -31,11 +31,8 @@ public abstract class MixinThrownPotionEntity extends Entity {
      */
     @Inject(method = "extinguishFire", at = @At("RETURN"))
     private void extinguishBrazier(BlockPos pos, Direction direction, CallbackInfo ci) {
-
-        DecorativeBlocks.logger.info("entered");
         BlockState state = this.world.getBlockState(pos);
         if (state.getBlock() == Registration.BRAZIER && state.get(BrazierBlock.LIT)) {
-            DecorativeBlocks.logger.info("extinguish");
             ((ServerWorld)this.world).setBlockState(pos, state.with(BrazierBlock.LIT, false));
             this.world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_GENERIC_EXTINGUISH_FIRE, SoundCategory.BLOCKS, .6f, 1f);
         }

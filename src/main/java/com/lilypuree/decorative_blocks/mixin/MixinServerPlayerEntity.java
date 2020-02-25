@@ -19,9 +19,7 @@ public abstract class MixinServerPlayerEntity {
     @Inject(at = @At("RETURN"), method = "stopRiding", locals = LocalCapture.CAPTURE_FAILSOFT)
     private void killDummy(CallbackInfo info, Entity entity) {
 
-        if (entity.getType() == Registration.DUMMY_ENTITY_TYPE) {
+        if (entity.getType() == Registration.DUMMY_ENTITY_TYPE)
             entity.kill();
-            DecorativeBlocks.logger.debug("decorative_blocks: dummy killed by mixin");
-        }
     }
 }
